@@ -10,6 +10,7 @@
 
     <properties>
         <java.version>1.8</java.version>
+
         <jodconverter.version>4.4.6</jodconverter.version>
         <spring.boot.version>2.4.2</spring.boot.version>
         <poi.version>5.2.2</poi.version>
@@ -58,7 +59,7 @@
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
 
@@ -87,4 +88,105 @@
         <url>https://github.com/kekingcn/kkFileView/issues</url>
     </issueManagement>
 
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.9.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>1.2.2</version>
+                <configuration>
+                    <!-- 镜像名称  -->
+                    <imageName>registry.cn-hongkong.aliyuncs.coml/kumi-test/${project.artifactId}</imageName>
+                    <!-- Dockerfile 文件目录 -->
+                    <dockerDirectory>./</dockerDirectory>
+                    <registryUrl>registry.cn-hongkong.aliyuncs.com</registryUrl>
+                    <!-- docker远程服务地址 ，前提是docker服务器需开启远程访问-->
+                    <dockerHost>http://localhost:2375</dockerHost>
+                    <serverId>kumi-docker-registry</serverId>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                        <imageTag>latest</imageTag>
+                    </imageTags>
+                    <!-- build完成后 push 远程仓库推送 -->
+                    <pushImage>true</pushImage>
+                    <!-- 覆盖已经存在的tag镜像 -->
+                    <forceTags>true</forceTags>
+                    <!-- 推送失败重试次数 -->
+                    <retryPushCount>3</retryPushCount>
+                    <!-- 推送超时时间 -->
+                    <retryPushTimeout>5</retryPushTimeout>
+                    <resources>
+                        <resource>
+                            <targetPath>/server/</targetPath>
+                            <!-- 资源所在目录 -->
+                            <directory>${project.build.directory}</directory>
+                            <!-- 生成的.jar文件 -->
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                        <resource>
+                            <targetPath>/server/</targetPath>
+                            <!-- 资源所在目录 -->
+                            <directory>${project.build.outputDirectory}</directory>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.woff</exclude>
+                    <exclude>**/*.woff2</exclude>
+                    <exclude>**/*.ttf</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.woff</include>
+                    <include>**/*.woff2</include>
+                    <include>**/*.ttf</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
 </project>
